@@ -35,8 +35,9 @@ var config = {
 
 var player;
 var coins ;
+var coins2 ;
 var platforms;
-var score = 1;
+var score = 0 ;
 var scoreText;
 var bombs;
 var nivel = 20 ;
@@ -52,6 +53,7 @@ var codeExecuted2 = false;
 var buttonSound;
 var gameWon;
 var bombHit;
+var gameOver = false;
 
 
 var game = new Phaser.Game(config);
@@ -80,7 +82,10 @@ function create ()
     player.setCollideWorldBounds(true);
     this.physics.add.collider(player, platforms);
 
-    
+    this.buttonSound = this.sound.add('buttonSound');
+    this.gameWon = this.sound.add('gameWon');
+    this.bombHit = this.sound.add('bombHit');
+
     this.anims.create({
             key: 'right',
             frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
@@ -103,6 +108,7 @@ function create ()
 
   // Create coin fountain
   coins = this.physics.add.group();
+  coins2 = this.physics.add.group();
   bombs = this.physics.add.group();
 
   var coinTimer = setTimeout(createCoin, 1000);
@@ -112,23 +118,15 @@ function create ()
   cursors = this.input.keyboard.createCursorKeys();
         
     //Scor
-
-    scoreText = this.add.text(16, 16, 'Moedas: 0', { fontSize: '50px', fill: '#ffffff' });
-    levelText = this.add.text(16, 60 , 'Level: 1', { fontSize: '50px', fill: '#ffffff' });
+  scoreText = this.add.text(16, 16, 'Moedas: 0', { fontSize: '50px', fill: '#ffffff' });
+  levelText = this.add.text(16, 60 , 'Level: 1', { fontSize: '50px', fill: '#ffffff' });
 
     //Bomb
-
-    
-
-    
-  
     this.physics.add.collider(player, bombs, hitBomb, null, this);
     this.physics.add.overlap(player, coins , collectCoins, null, this);
+    this.physics.add.overlap(player, coins2 , collectCoins2, null, this);
 
-    this.buttonSound = this.sound.add('buttonSound');
-    this.gameWon = this.sound.add('gameWon');
-    this.bombHit = this.sound.add('bombHit');
-
+    
 
 
 }
@@ -138,7 +136,6 @@ function update ()
 {
 
     
-
     if (cursors.left.isDown)
         {
             player.setVelocityX(-160);
@@ -164,13 +161,15 @@ function update ()
         }
         
         
-        if (score <= 0) {
+        if (score < 0) {
         clearTimeout(bombTimer);
         clearTimeout(coinTimer);
         player.setTint(0x000000);
         coinTimer = 0 ;
         this.physics.pause();
         this.add.text(250, 200, 'Game Over', { fontSize: '50px', fill: '#ffffff' });
+        gameOver = true;
+        return ;
         }
         
         
@@ -193,7 +192,7 @@ function update ()
             codeExecuted2 = true;
         }
 
-        if (score === 4)
+        if (score > 4)
         {
             clearTimeout(bombTimer);
             clearTimeout(coinTimer);
@@ -219,7 +218,13 @@ function collectCoins (player, coin)
     this.buttonSound.play(); 
 }
 
-
+function collectCoins2 (player, coin2)
+{
+    coin2.disableBody(true, true);
+    score += 2;
+    scoreText.setText('Moedas: ' + score); 
+    this.buttonSound.play(); 
+}
 
 
 function hitBomb (player, bomb)
@@ -231,8 +236,6 @@ function hitBomb (player, bomb)
     this.bombHit.play();      
 }
 
-
-
 function createCoin() {
     var coin = coins.create(Phaser.Math.Between(50, 750), 0, 'coin');
     coin.setVelocity(Phaser.Math.Between(-200, 200), Phaser.Math.Between(200, 400));
@@ -242,7 +245,7 @@ function createCoin() {
   } 
 function createCoin2() {
   // Add the coin sprite
-  var coin2 = coins.create(Phaser.Math.Between(50, 750), 0, 'coin2');
+  var coin2 = coins2.create(Phaser.Math.Between(50, 750), 0, 'coin2');
   coin2.setVelocity(Phaser.Math.Between(-200, 200), Phaser.Math.Between(200, 400));
   coin2.setGravityY(nivel);
   coin2.setBounce(1, 1);
